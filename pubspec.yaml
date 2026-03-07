@@ -39,8 +39,9 @@ dependencies:
   uuid: ^4.5.3
   sqflite_common_ffi: 2.3.6
   cupertino_icons: ^1.0.8
-  sqflite_common_ffi_web: 1.0.1+1
-
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:teste_vagacrud/HomeScreen.dart';
 
 void main() async {
@@ -11,7 +10,7 @@ void main() async {
   try {
     if (kIsWeb) {
       // WEB
-      databaseFactory = databaseFactoryFfiWeb;
+      await Hive.initFlutter();
     } else {
       // DESKTOP / MOBILE
       sqfliteFfiInit();

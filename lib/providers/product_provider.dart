@@ -1,14 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../core/database_helper.dart';
+
 import '../models/product.dart';
+import '../repositories/product/product_repository.dart';
+import 'product_repository_provider.dart';
+
+final productProvider =
+    NotifierProvider<ProductNotifier, ProductState>(ProductNotifier.new);
 
 class ProductState {
   final List<Product> products;
   final bool isLoading;
   final String? error;
 
-  ProductState({
+  const ProductState({
     this.products = const [],
     this.isLoading = false,
     this.error,
@@ -22,77 +27,66 @@ class ProductState {
     return ProductState(
       products: products ?? this.products,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: error ?? this.error,
     );
   }
 }
 
 class ProductNotifier extends Notifier<ProductState> {
-  final DatabaseHelper _db = DatabaseHelper.instance;
-  final ImagePicker _picker = ImagePicker();
+  late final ProductRepository repository;
 
   @override
   ProductState build() {
-    fetchProducts();
-    return ProductState();
+    repository = ref.read(productRepositoryProvider);
+    Future.microtask(() => fetchProducts());
+    return const ProductState();
   }
 
+  /// BUSCAR PRODUTOS
   Future<void> fetchProducts() async {
-    state = state.copyWith(isLoading: true);
-
     try {
-      final db = await _db.database;
+      state = state.copyWith(isLoading: true);
 
-      final maps = await db.query('products');
-
-      final productList = maps.map((e) => Product.fromMap(e)).toList();
+      final products = await repository.getProducts();
 
       state = state.copyWith(
-        products: productList,
+        products: products,
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
-    }
-  }
-
-  Future<void> saveProduct(Product product) async {
-    final db = await _db.database;
-
-    if (product.id.isEmpty) {
-      await db.insert('products', product.toMap());
-    } else {
-      await db.update(
-        'products',
-        product.toMap(),
-        where: 'id = ?',
-        whereArgs: [product.id],
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
       );
     }
-
-    await fetchProducts();
   }
 
+  /// SALVAR PRODUTO
+  Future<void> saveProduct(Product product) async {
+    try {
+      await repository.saveProduct(product);
+      await fetchProducts();
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  /// DELETAR PRODUTO
   Future<void> deleteProduct(String id) async {
-    final db = await _db.database;
-
-    await db.delete(
-      'products',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    await fetchProducts();
+    try {
+      await repository.deleteProduct(id);
+      await fetchProducts();
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
   }
 
+  /// PICK IMAGES
   Future<List<String>> pickImages() async {
-    final images = await _picker.pickMultiImage();
+    final ImagePicker picker = ImagePicker();
 
-    if (images.isEmpty) return [];
+    final List<XFile> images = await picker.pickMultiImage();
 
     return images.map((img) => img.path).toList();
   }
 }
-
-final productProvider =
-    NotifierProvider<ProductNotifier, ProductState>(ProductNotifier.new);
