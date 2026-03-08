@@ -19,7 +19,18 @@ class HiveClientRepository implements ClientRepository {
   @override
   Future<void> saveClient(Client client) async {
     final box = await _box();
-    await box.put(client.id, client.toMap());
+    final String safeId = client.id.isEmpty 
+        ? DateTime.now().microsecondsSinceEpoch.toString() 
+        : client.id;
+    final clientToSave = Client(
+      id: safeId,
+      razaoSocial: client.razaoSocial,
+      cnpj: client.cnpj,
+      email: client.email,
+      cep: client.cep,
+      logradouro: client.logradouro,
+    );
+    await box.put(safeId, clientToSave.toMap());
   }
 
   @override

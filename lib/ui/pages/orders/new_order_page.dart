@@ -15,10 +15,7 @@ class CartItem {
   final Product product;
   int quantity;
 
-  CartItem({
-    required this.product,
-    required this.quantity,
-  });
+  CartItem({required this.product, required this.quantity});
 
   double get subtotal => product.valorVenda * quantity;
 }
@@ -68,9 +65,9 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
     final qty = int.tryParse(controller?.text ?? '1') ?? 1;
 
     if (qty <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Quantidade inválida')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Quantidade inválida')));
       return;
     }
 
@@ -84,28 +81,22 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
       return;
     }
 
-    final existingIndex =
-        _cart.indexWhere((item) => item.product.id == product.id);
+    final existingIndex = _cart.indexWhere(
+      (item) => item.product.id == product.id,
+    );
 
     setState(() {
       if (existingIndex != -1) {
         _cart[existingIndex].quantity += qty;
       } else {
-        _cart.add(
-          CartItem(
-            product: product,
-            quantity: qty,
-          ),
-        );
+        _cart.add(CartItem(product: product, quantity: qty));
       }
     });
 
     controller?.text = '1';
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${qty}x ${product.descricao} adicionado'),
-      ),
+      SnackBar(content: Text('${qty}x ${product.descricao} adicionado')),
     );
   }
 
@@ -157,7 +148,9 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
           )
           .toList();
 
-      await ref.read(orderProvider.notifier).saveOrder(
+      await ref
+          .read(orderProvider.notifier)
+          .saveOrder(
             clienteId: client.id,
             clienteNome: client.razaoSocial,
             data: DateTime.now().toIso8601String(),
@@ -199,10 +192,7 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
     Client? selectedClient;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Novo Pedido'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Novo Pedido'), centerTitle: true),
       body: Column(
         children: [
           /// CLIENTE
@@ -284,17 +274,43 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle_outline),
+                                onPressed: () {
+                                  final controller =
+                                      _qtyControllers[product.id]!;
+                                  int value =
+                                      int.tryParse(controller.text) ?? 1;
+                                  if (value > 1) {
+                                    value--;
+                                    controller.text = value.toString();
+                                  }
+                                },
+                              ),
+
                               SizedBox(
-                                width: 50,
+                                width: 40,
                                 child: TextField(
                                   controller: _qtyControllers[product.id],
                                   keyboardType: TextInputType.number,
                                   textAlign: TextAlign.center,
                                 ),
                               ),
+
+                              IconButton(
+                                icon: const Icon(Icons.add_circle_outline),
+                                onPressed: () {
+                                  final controller =
+                                      _qtyControllers[product.id]!;
+                                  int value =
+                                      int.tryParse(controller.text) ?? 1;
+                                  value++;
+                                  controller.text = value.toString();
+                                },
+                              ),
                               IconButton(
                                 icon: const Icon(
-                                  Icons.add_circle,
+                                  Icons.shopping_cart,
                                   color: Colors.green,
                                 ),
                                 onPressed: () => _addToCart(product),
@@ -312,9 +328,7 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
             height: 220,
             decoration: BoxDecoration(
               color: Colors.blue[50],
-              border: Border(
-                top: BorderSide(color: Colors.grey[300]!),
-              ),
+              border: Border(top: BorderSide(color: Colors.grey[300]!)),
             ),
             child: Column(
               children: [
@@ -373,9 +387,7 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
                         padding: const EdgeInsets.symmetric(vertical: 15),
                       ),
                       child: _isSaving
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
+                          ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
                               'FINALIZAR PEDIDO',
                               style: TextStyle(fontSize: 16),
