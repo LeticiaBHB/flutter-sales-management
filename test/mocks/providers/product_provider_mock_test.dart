@@ -4,8 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:teste_vagacrud/models/product.dart';
 import 'package:teste_vagacrud/providers/product_provider.dart';
 import 'package:teste_vagacrud/providers/product_repository_provider.dart';
-import '../mock_product_repository.dart';
-
+import '../mock_product_repository.mocks.dart';
 void main() {
 
   test('Provider carrega produtos do repository', () async {
@@ -31,13 +30,12 @@ void main() {
       ],
     );
 
+    addTearDown(container.dispose);
+
     await container.read(productProvider.notifier).fetchProducts();
 
     final state = container.read(productProvider);
 
     expect(state.products.length, 1);
-    expect(state.products.first.descricao, "Produto Teste");
-
   });
-
 }

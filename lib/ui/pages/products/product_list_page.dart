@@ -9,7 +9,13 @@ class ProductListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+
+    Future.microtask(() {
+      ref.read(productProvider.notifier).fetchProducts();
+    });
+
     final asyncState = ref.watch(productProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Produtos'),
@@ -22,17 +28,24 @@ class ProductListPage extends ConsumerWidget {
                   itemCount: asyncState.products.length,
                   itemBuilder: (ctx, index) {
                     final prod = asyncState.products[index];
+
                     return ListTile(
                       leading: prod.imagens.isNotEmpty
-                          ? ImageDisplayWidget(imagePath: prod.imagens.first)
+                          ? ImageDisplayWidget(
+                              imagePath: prod.imagens.first,
+                            )
                           : const Icon(Icons.image_not_supported),
+
                       title: Text(prod.descricao),
+
                       subtitle: Text(
                         'R\$ ${prod.valorVenda.toStringAsFixed(2)} | Estoque: ${prod.estoque}',
                       ),
+
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+
                           IconButton(
                             key: const Key('editProductButton'),
                             icon: const Icon(Icons.edit),
@@ -40,20 +53,28 @@ class ProductListPage extends ConsumerWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => ProductFormPage(product: prod),
+                                  builder: (_) => ProductFormPage(
+                                    product: prod,
+                                  ),
                                 ),
                               );
                             },
                           ),
+
                           IconButton(
                             icon: const Icon(Icons.delete),
-                            onPressed: () => _showDeleteDialog(context, ref, prod.id),
+                            onPressed: () => _showDeleteDialog(
+                              context,
+                              ref,
+                              prod.id,
+                            ),
                           ),
                         ],
                       ),
                     );
                   },
                 ),
+
       floatingActionButton: FloatingActionButton(
         key: const Key('newProductButton'),
         child: const Icon(Icons.add),
@@ -68,21 +89,31 @@ class ProductListPage extends ConsumerWidget {
       ),
     );
   }
-  void _showDeleteDialog(BuildContext context, WidgetRef ref, String id) {
+
+  void _showDeleteDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String id,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Excluir Produto'),
         content: const Text('Deseja realmente excluir?'),
         actions: [
+
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancelar'),
           ),
+
           TextButton(
             key: const Key('deleteProductButton'),
             onPressed: () {
-              ref.read(productProvider.notifier).deleteProduct(id);
+              ref
+                  .read(productProvider.notifier)
+                  .deleteProduct(id);
+
               Navigator.pop(ctx);
             },
             child: const Text('Confirmar'),

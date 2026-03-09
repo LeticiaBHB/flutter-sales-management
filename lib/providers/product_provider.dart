@@ -35,12 +35,11 @@ class ProductState {
 class ProductNotifier extends Notifier<ProductState> {
   late final ProductRepository repository;
 
-  @override
-  ProductState build() {
-    repository = ref.read(productRepositoryProvider);
-    Future.microtask(() => fetchProducts());
-    return const ProductState();
-  }
+@override
+ProductState build() {
+  repository = ref.read(productRepositoryProvider);
+  return const ProductState();
+}
 
   /// BUSCAR PRODUTOS
   Future<void> fetchProducts() async {

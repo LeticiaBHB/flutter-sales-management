@@ -1,4 +1,5 @@
-import 'package:mockito/mockito.dart';
+import 'package:mockito/annotations.dart';
 import 'package:teste_vagacrud/repositories/product/product_repository.dart';
 
-class MockProductRepository extends Mock implements ProductRepository {}
+@GenerateMocks([ProductRepository])
+void main() {}
