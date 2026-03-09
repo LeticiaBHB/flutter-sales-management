@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/client.dart';
 import '../../../providers/client_provider.dart';
 import '../../../services/api_service.dart';
-
+import 'package:uuid/uuid.dart';
 class ClientFormPage extends ConsumerStatefulWidget {
   final Client? client; 
 
@@ -79,7 +79,7 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
   Future<void> _saveClient() async {
     if (!_formKey.currentState!.validate()) return;
     final client = Client(
-      id: widget.client?.id ?? '',
+      id: widget.client?.id ?? const Uuid().v4(),
       razaoSocial: _razaoSocialController.text,
       cnpj: _cnpjController.text,
       email: _emailController.text,

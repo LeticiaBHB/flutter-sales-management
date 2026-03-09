@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -7,28 +9,34 @@ import 'package:teste_vagacrud/HomeScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   try {
     if (kIsWeb) {
       // WEB
       await Hive.initFlutter();
-    } else {
-      // DESKTOP / MOBILE
+
+    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // DESKTOP
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
 
+    // ANDROID / IOS usam sqflite normal automaticamente
+
     runApp(const ProviderScope(child: MyApp()));
+
   } catch (e) {
     print('ERRO: $e');
+
     runApp(MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.red,
         body: Center(
           child: Padding(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Text(
               'Erro: $e',
-              style: TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white),
               textAlign: TextAlign.center,
             ),
           ),

@@ -1,15 +1,17 @@
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:teste_vagacrud/ui/widgets/image_display_widget.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../../models/product.dart';
 import '../../../providers/product_provider.dart';
+import '../../widgets/image_display_widget.dart';
 
 class ProductFormPage extends ConsumerStatefulWidget {
-  final Product? product; // Se for nulo, é criação. Se tiver valor, é edição.
-
+  final Product? product;
   const ProductFormPage({super.key, this.product});
-
   @override
   ConsumerState<ProductFormPage> createState() => _ProductFormPageState();
 }
@@ -24,10 +26,14 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
   @override
   void initState() {
     super.initState();
-    _descController = TextEditingController(text: widget.product?.descricao ?? '');
-    _valorController = TextEditingController(text: widget.product?.valorVenda.toString() ?? '');
-    _estoqueController = TextEditingController(text: widget.product?.estoque.toString() ?? '');
-    _selectedImages = widget.product?.imagens ?? [];
+
+    _descController =
+        TextEditingController(text: widget.product?.descricao ?? '');
+    _valorController =
+        TextEditingController(text: widget.product?.valorVenda.toString() ?? '');
+    _estoqueController =
+        TextEditingController(text: widget.product?.estoque.toString() ?? '');
+    _selectedImages = List<String>.from(widget.product?.imagens ?? []);
   }
 
   @override
@@ -50,42 +56,62 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
       final product = Product(
         id: widget.product?.id ?? const Uuid().v4(),
         descricao: _descController.text,
-        valorVenda: double.parse(_valorController.text),
-        estoque: int.parse(_estoqueController.text),
+        valorVenda: double.tryParse(_valorController.text) ?? 0,
+        estoque: int.tryParse(_estoqueController.text) ?? 0,
         imagens: _selectedImages,
       );
-      
       ref.read(productProvider.notifier).saveProduct(product);
       Navigator.pop(context);
+    }
+  }
+
+  Widget _buildImagePreview(String path) {
+    if (kIsWeb) {
+      return ImageDisplayWidget(imagePath: path);
+    }
+    try {
+      final file = File(path);
+      if (!file.existsSync()) {
+        return const Icon(Icons.broken_image, size: 50);
+      }
+      return ImageDisplayWidget(imagePath: path);
+    } catch (_) {
+      return const Icon(Icons.broken_image, size: 50);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.product == null ? 'Novo Produto' : 'Editar Produto')),
+      appBar: AppBar(
+        title: Text(widget.product == null ? 'Novo Produto' : 'Editar Produto'),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
               TextFormField(
+                key: const Key('descricaoField'),
                 controller: _descController,
                 decoration: const InputDecoration(labelText: 'Descrição'),
-                validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Obrigatório' : null,
               ),
               TextFormField(
+                key: const Key('valorField'),
                 controller: _valorController,
                 decoration: const InputDecoration(labelText: 'Valor de Venda'),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                validator: (v) => v == null || v.isEmpty ? 'Obrigatório' : null,
               ),
               TextFormField(
+                key: const Key('estoqueField'),
                 controller: _estoqueController,
                 decoration: const InputDecoration(labelText: 'Estoque'),
                 keyboardType: TextInputType.number,
-                validator: (v) => v!.isEmpty ? 'Obrigatório' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Obrigatório' : null,
               ),
               const SizedBox(height: 20),
               const Text('Imagens'),
@@ -94,17 +120,22 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                 icon: const Icon(Icons.photo_library),
                 label: const Text('Upload da Galeria'),
               ),
-              // Preview simples das imagens
+              const SizedBox(height: 10),
               Wrap(
                 children: _selectedImages.map((path) {
                   return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ImageDisplayWidget(imagePath: path)
+                    padding: const EdgeInsets.all(8),
+                    child: SizedBox(
+                      width: 70,
+                      height: 70,
+                      child: _buildImagePreview(path),
+                    ),
                   );
                 }).toList(),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
+                key: const Key('saveProductButton'),
                 onPressed: _save,
                 child: const Text('Salvar'),
               ),
