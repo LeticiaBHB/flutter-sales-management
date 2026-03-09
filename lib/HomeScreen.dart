@@ -12,6 +12,7 @@ class HomeScreen extends StatelessWidget {
     required String title,
     required String description,
     required VoidCallback onTap,
+    Key? cardKey,
   }) {
     double screenWidth = MediaQuery.of(context).size.width;
     double cardWidth = screenWidth > 600 
@@ -31,6 +32,7 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
         ),
         child: InkWell(
+          key: cardKey,
           borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: Padding(
@@ -117,6 +119,7 @@ class HomeScreen extends StatelessWidget {
                                 alignment: WrapAlignment.center,
                                 children: [
                                   buildCard(
+                                    cardKey: const Key('openClientsPage'),
                                     context: context,
                                     icon: Icons.people,
                                     title: 'Clientes',
@@ -131,6 +134,7 @@ class HomeScreen extends StatelessWidget {
                                     },
                                   ),
                                   buildCard(
+                                    cardKey: const Key('openProductsPage'),
                                     context: context,
                                     icon: Icons.inventory,
                                     title: 'Produtos',
@@ -145,6 +149,7 @@ class HomeScreen extends StatelessWidget {
                                     },
                                   ),
                                   buildCard(
+                                    cardKey: const Key('openOrdersPage'),
                                     context: context,
                                     icon: Icons.shopping_cart,
                                     title: 'Pedidos',
@@ -194,7 +199,7 @@ class HomeScreen extends StatelessWidget {
                               child: Text(
                                 MediaQuery.of(context).size.width > 400
                                     ? 'Desenvolvido em Flutter | Arquitetura: Riverpod + SQLite'
-                                    : 'Flutter | Riverpod + SQLite',
+                                    : 'Flutter | Riverpod + SQLite | Hive',
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   color: Colors.grey,
