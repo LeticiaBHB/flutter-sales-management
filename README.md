@@ -227,20 +227,6 @@ Eles são responsáveis por:
 
 ---
 
-# 🧪 Testes
-
-O projeto possui suporte a:
-
-* **testes unitários**
-* **testes de integração**
-
-```
-flutter_test
-mockito
-integration_test
-```
-
-
 # 📂 Estrutura do Projeto
 
 ```
