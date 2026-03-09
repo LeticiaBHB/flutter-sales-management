@@ -107,6 +107,7 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
   }
 
   Future<void> _saveOrder() async {
+
     if (_selectedClientId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -116,7 +117,6 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
       );
       return;
     }
-
     if (_cart.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -126,16 +126,21 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
       );
       return;
     }
-
     setState(() => _isSaving = true);
-
     try {
       final clientsState = ref.read(clientProvider);
-
       final client = clientsState.clients.firstWhere(
         (c) => c.id == _selectedClientId,
       );
-
+      final Map<String, int> stockChanges = {};
+      
+      for (var item in _cart) {
+        await ref
+            .read(productProvider.notifier)
+            .decreaseStock(item.product.id, item.quantity);
+        
+        stockChanges[item.product.id] = item.quantity;
+      }
       final orderItems = _cart
           .map(
             (item) => {
@@ -147,20 +152,15 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
             },
           )
           .toList();
-
-      await ref
-          .read(orderProvider.notifier)
-          .saveOrder(
+      await ref.read(orderProvider.notifier).saveOrder(
             clienteId: client.id,
             clienteNome: client.razaoSocial,
             data: DateTime.now().toIso8601String(),
             valorTotal: _totalOrderValue,
             itens: orderItems,
           );
-
       if (mounted) {
         Navigator.pop(context, true);
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Pedido criado com sucesso!'),
@@ -168,11 +168,11 @@ class _NewOrderPageState extends ConsumerState<NewOrderPage> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e) {      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao salvar pedido: $e'),
+            content: Text('Erro ao finalizar pedido: $e'),
             backgroundColor: Colors.red,
           ),
         );

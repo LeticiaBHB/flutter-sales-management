@@ -89,4 +89,48 @@ class ProductNotifier extends Notifier<ProductState> {
 
     return images.map((img) => img.path).toList();
   }
+
+   /// DIMINUIR ESTOQUE APÓS VENDA
+  Future<void> decreaseStock(String productId, int quantity) async {
+    try {
+      final product = state.products.firstWhere((p) => p.id == productId);
+
+      if (product.estoque < quantity) {
+        throw Exception('Estoque insuficiente para o produto ${product.descricao}');
+      }
+      final updatedProduct = Product(
+        id: product.id,
+        descricao: product.descricao,
+        valorVenda: product.valorVenda,
+        estoque: product.estoque - quantity,
+        imagens: product.imagens,
+      );
+      await repository.saveProduct(updatedProduct);
+      await fetchProducts();
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow; 
+    }
+  }
+
+  /// AUMENTAR ESTOQUE (DEVOLVER AO CANCELAR/EXCLUIR)
+  Future<void> increaseStock(String productId, int quantity) async {
+    try {
+      // Encontra o produto na lista atual
+      final product = state.products.firstWhere((p) => p.id == productId);
+
+      final updatedProduct = Product(
+        id: product.id,
+        descricao: product.descricao,
+        valorVenda: product.valorVenda,
+        estoque: product.estoque + quantity,
+        imagens: product.imagens,
+      );
+      await repository.saveProduct(updatedProduct);
+      await fetchProducts();
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      rethrow; 
+    }
+  }
 }
